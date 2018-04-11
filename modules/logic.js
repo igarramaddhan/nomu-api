@@ -9,9 +9,10 @@ const getAuthenticatedUser = ctx => {
 
 const noteLogic = {
 	getAllNote: (_, args, ctx) => {
+		const { userId } = args;
 		const user = getAuthenticatedUser(ctx);
 		if (user) {
-			return Note.find();
+			return Note.find({ userId });
 		}
 		console.log('---Getting notes failed');
 	},
@@ -19,12 +20,12 @@ const noteLogic = {
 		const { id } = args;
 		const user = getAuthenticatedUser(ctx);
 		if (user) {
-			return Note.findById(args.id);
+			return Note.findById(id);
 		}
 		console.log('---Getting note failed');
 	},
 	createNote: (_, args, ctx) => {
-		const { title, content } = args;
+		const { title, content, userId } = args;
 		const user = getAuthenticatedUser(ctx);
 		if (user) {
 			return Note.create(args);

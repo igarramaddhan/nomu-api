@@ -8,6 +8,9 @@ var noteSchema = new Schema(
 		},
 		content: {
 			type: String
+		},
+		userId: {
+			type: String
 		}
 	},
 	{ collection: 'notes' }
