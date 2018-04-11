@@ -5,7 +5,7 @@ const resolvers = require('./resolvers');
 const typeDefs = [
 	`
 	type Query {
-		note(_id: String): Note
+		note(id: String): Note
 		notes: [Note]		
 	}
 
@@ -18,6 +18,7 @@ const typeDefs = [
 	type User {
 		_id: String
 		username: String
+		token: String
 	}
 
 	type Mutation {

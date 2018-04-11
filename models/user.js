@@ -10,6 +10,11 @@ var userSchema = new Schema(
 		password: {
 			type: String,
 			required: true
+		},
+		//adding jwt
+		token: {
+			type: String,
+			required: false
 		}
 	},
 	{ collection: 'users' }
