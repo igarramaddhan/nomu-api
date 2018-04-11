@@ -10,15 +10,15 @@ const typeDefs = [
 	}
 
 	type Note {
-		_id: String
-		title: String
-		content: String
+		_id: String!
+		title: String!
+		content: String!
 	}
 
 	type User {
-		_id: String
-		username: String
-		token: String
+		_id: String!
+		username: String!
+		token: String!
 	}
 
 	type Mutation {

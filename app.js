@@ -4,6 +4,7 @@ let express = require('express');
 let mongoose = require('mongoose');
 let graphqlHTTP = require('express-graphql');
 const jwt = require('express-jwt');
+const jsonwebtoken = require('jsonwebtoken');
 
 let User = require('./models/user');
 let Note = require('./models/note');
@@ -12,16 +13,37 @@ const { JWT_SECRET } = require('./config/config');
 
 let app = express();
 
-app.use(bodyParser.json());
+const auth = async (req, res, next) => {
+	try {
+		const token = req.headers.authorization.split(' ')[1];
+		const { user } = await jsonwebtoken.verify(token, JWT_SECRET);
+		req.user = user;
+	} catch (err) {
+		console.log('---Unauthorized user');
+	}
+	next();
+};
+
 app.use(
 	'/graphql',
-	graphqlHTTP(req => ({
-		schema,
-		graphiql: true
-	})),
+	bodyParser.json(),
+	auth,
 	jwt({
 		secret: JWT_SECRET,
 		credentialsRequired: false
+	}),
+	graphqlHTTP(req => ({
+		schema,
+		context: {
+			user: req.user
+		}
+	}))
+);
+app.use(
+	'/graphiql',
+	graphqlHTTP({
+		schema,
+		graphiql: true
 	})
 );
 

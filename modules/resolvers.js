@@ -3,82 +3,84 @@ const jwt = require('jsonwebtoken');
 
 const Note = require('../models/note');
 const User = require('../models/user');
+const { noteLogic } = require('./logic');
 
 //adding jwt
 const { JWT_SECRET } = require('../config/config');
 
 module.exports = {
 	Query: {
-		note: (obj, { id }, context) => {
-			if (context.headers && context.headers.authorization) {
-				return Note.findById(id);
-			} else {
-				throw new Error('Need authorization token');
+		note: async (obj, args, ctx) => {
+			try {
+				const note = await noteLogic.getOneNote(obj, args, ctx);
+				return note;
+			} catch (err) {
+				throw err;
 			}
 		},
-		notes: (obj, args, context) => {
-			if (context.headers && context.headers.authorization) {
-				return Note.find();
-			} else {
-				throw new Error('Need authorization token');
+		notes: async (obj, args, ctx) => {
+			try {
+				const notes = await noteLogic.getAllNote(obj, args, ctx);
+				return notes;
+			} catch (err) {
+				throw err;
 			}
 		}
 	},
 	Mutation: {
-		createNote: (obj, args, context) => {
-			if (context.headers && context.headers.authorization) {
-				return Note.create(args);
-			} else {
-				throw new Error('Need authorization token');
+		createNote: async (obj, args, ctx) => {
+			try {
+				const note = await noteLogic.createNote(obj, args, ctx);
+				return note;
+			} catch (err) {
+				throw err;
 			}
 		},
-		updateNote: (obj, { id, title, content }, context) => {
-			if (context.headers && context.headers.authorization) {
-				return Note.findByIdAndUpdate(id, { title, content }, { new: true });
-			} else {
-				throw new Error('Need authorization token');
+		updateNote: async (obj, args, ctx) => {
+			try {
+				const note = await noteLogic.updateNote(obj, args, ctx);
+				return note;
+			} catch (err) {
+				throw err;
 			}
 		},
-		removeNote: async (obj, { id }, context) => {
-			if (context.headers && context.headers.authorization) {
-				try {
-					const deletedNote = await Note.findByIdAndRemove(id);
-					if (deletedNote) return 'OK';
-					else return 'NOT EXIST';
-				} catch (error) {
-					throw error;
-				}
-			} else {
-				throw new Error('Need authorization token');
+		removeNote: async (obj, args, ctx) => {
+			try {
+				const deletedNote = await noteLogic.deleteNote(obj, args, ctx);
+				return deletedNote;
+			} catch (err) {
+				throw err;
 			}
 		},
-		signUp: async (obj, { username, password }) => {
+		signUp: async (obj, { username, password }, ctx) => {
 			const existingUser = await User.findOne({ username });
-			if (existingUser) {
-				throw new Error('Username already used');
+			if (!existingUser) {
+				const hash = await bcrypt.hash(password, 10);
+				await User.create({
+					username,
+					password: hash
+				});
+				const user = await User.findOne({ username });
+				//adding jwt
+				user.token = jwt.sign({ user }, JWT_SECRET);
+				ctx.user = Promise.resolve(user);
+				return user;
 			}
-			const hash = await bcrypt.hash(password, 10);
-			await User.create({
-				username,
-				password: hash
-			});
-			const user = await User.findOne({ username });
-			//adding jwt
-			user.token = jwt.sign({ _id: user._id }, JWT_SECRET);
-			return user;
+			return Promise.reject('username already exists'); // email already exists
 		},
-		logIn: async (obj, { username, password }) => {
+		logIn: async (obj, { username, password }, ctx) => {
 			const user = await User.findOne({ username });
-			if (!user) {
-				throw new Error('User does not exist');
+			if (user) {
+				const validPassword = await bcrypt.compare(password, user.password);
+				if (validPassword) {
+					//adding jwt
+					user.token = jwt.sign({ user: user }, JWT_SECRET);
+					ctx.user = Promise.resolve(user);
+					return user;
+				}
+				return Promise.reject('password incorrect');
 			}
-			const validPassword = await bcrypt.compare(password, user.password);
-			if (!validPassword) {
-				throw new Error('Password is incorrect');
-			}
-			//adding jwt
-			user.token = jwt.sign({ _id: user._id }, JWT_SECRET);
-			return user;
+			return Promise.reject('username not found');
 		}
 	}
 };
