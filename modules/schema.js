@@ -6,7 +6,7 @@ const typeDefs = [
 	`
 	type Query {
 		note(id: String!): Note
-		notes(userId: String!): [Note]		
+		notes: [Note]		
 	}
 
 	type Note {
@@ -23,7 +23,7 @@ const typeDefs = [
 	}
 
 	type Mutation {
-		createNote(title: String!, content: String!, userId: String!): Note
+		createNote(title: String!, content: String!): Note
 		updateNote(id: String!, title: String!, content: String!): Note
 		removeNote(id: String!): String
 		signUp(username: String!, password: String!): User

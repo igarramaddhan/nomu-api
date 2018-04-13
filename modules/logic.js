@@ -9,10 +9,9 @@ const getAuthenticatedUser = ctx => {
 
 const noteLogic = {
 	getAllNote: (_, args, ctx) => {
-		const { userId } = args;
-		const user = getAuthenticatedUser(ctx);
-		if (user) {
-			return Note.find({ userId });
+		const data = getAuthenticatedUser(ctx);
+		if (data) {
+			return Note.find({ userId: data.user._id });
 		}
 		console.log('---Getting notes failed');
 	},
@@ -25,10 +24,11 @@ const noteLogic = {
 		console.log('---Getting note failed');
 	},
 	createNote: (_, args, ctx) => {
-		const { title, content, userId } = args;
-		const user = getAuthenticatedUser(ctx);
-		if (user) {
-			return Note.create(args);
+		const { title, content } = args;
+		const data = getAuthenticatedUser(ctx);
+		if (data) {
+			let newNote = { title: title, content: content, userId: data.user._id };
+			return Note.create(newNote);
 		}
 		console.log('---Creating note failed');
 	},

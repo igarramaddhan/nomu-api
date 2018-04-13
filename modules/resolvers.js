@@ -74,8 +74,9 @@ module.exports = {
 				const validPassword = await bcrypt.compare(password, user.password);
 				if (validPassword) {
 					//adding jwt
-					user.token = jwt.sign({ user: user }, JWT_SECRET);
+					user.token = jwt.sign({ user }, JWT_SECRET);
 					ctx.user = Promise.resolve(user);
+					console.log('login user', user.username);
 					return user;
 				}
 				return Promise.reject('password incorrect');
